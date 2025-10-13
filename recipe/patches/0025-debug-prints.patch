@@ -1,0 +1,51 @@
+From 5185361519bf8de4f6e13caaa4556f0b0a7453ee Mon Sep 17 00:00:00 2001
+From: Silvio Traversaro <silvio@traversaro.it>
+Date: Mon, 13 Oct 2025 11:40:37 +0200
+Subject: [PATCH] Log QT_CONFIGURE_LIBLOCATION_TO_PREFIX_PATH value
+
+Add message output for QT_CONFIGURE_LIBLOCATION_TO_PREFIX_PATH.
+---
+ qtbase/cmake/QtQmakeHelpers.cmake | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/qtbase/cmake/QtQmakeHelpers.cmake b/qtbase/cmake/QtQmakeHelpers.cmake
+index c618fa051096..dbd43cdbad00 100644
+--- a/qtbase/cmake/QtQmakeHelpers.cmake
++++ b/qtbase/cmake/QtQmakeHelpers.cmake
+@@ -47,6 +47,7 @@ function(qt_generate_qconfig_cpp in_file out_file)
+     file(RELATIVE_PATH from_lib_location_to_prefix
+          "${lib_location_absolute_path}" "${QT_BUILD_INTERNALS_RELOCATABLE_INSTALL_PREFIX}")
+     set(QT_CONFIGURE_LIBLOCATION_TO_PREFIX_PATH "${from_lib_location_to_prefix}")
++    message(STATUS "==========================> QT_CONFIGURE_LIBLOCATION_TO_PREFIX_PATH : ${QT_CONFIGURE_LIBLOCATION_TO_PREFIX_PATH}")
+ 
+     # Ensure Windows drive letter is prepended to the install prefix hardcoded
+     # into qconfig.cpp, otherwise qmake can't find Qt modules in a static Qt
+
+diff --git a/qtbase/src/corelib/global/qlibraryinfo.cpp b/qtbase/src/corelib/global/qlibraryinfo.cpp
+index 4b116c54b2e4..0bb86eb8e562 100644
+--- a/qtbase/src/corelib/global/qlibraryinfo.cpp
++++ b/qtbase/src/corelib/global/qlibraryinfo.cpp
+@@ -31,6 +31,7 @@
+ #endif
+
+ #include <memory>
++#include <iostream>
+
+ QT_BEGIN_NAMESPACE
+
+@@ -299,9 +300,15 @@ static QString prefixFromAppDirHelper()
+         && (QT_CONFIG(dlopen) || defined(Q_OS_WIN))
+ static QString prefixFromQtCoreLibraryHelper(const QString &qtCoreLibraryPath)
+ {
++    std::cerr << "===============> prefixFromQtCoreLibraryHelper called with argument qtCoreLibraryPath" << qtCoreLibraryPath.toStdString() << std::endl;
+     const QString qtCoreLibrary = QDir::fromNativeSeparators(qtCoreLibraryPath);
++    std::cerr << "===============>  qtCoreLibrary" << qtCoreLibrary.toStdString() << std::endl;
+     const QString libDir = QFileInfo(qtCoreLibrary).absolutePath();
++    std::cerr << "===============> libDir " << libDir.toStdString() << std::endl;
++    std::cerr << "===============> QT_CONFIGURE_LIBLOCATION_TO_PREFIX_PATH " << QT_CONFIGURE_LIBLOCATION_TO_PREFIX_PATH << std::endl;
+     const QString prefixDir = libDir + "/" QT_CONFIGURE_LIBLOCATION_TO_PREFIX_PATH;
++    std::cerr << "===============> prefixDir " << prefixDir.toStdString() << std::endl;
++    std::cerr << "===============> QDir::cleanPath(prefixDir) " << QDir::cleanPath(prefixDir).toStdString() << std::endl;
+     return QDir::cleanPath(prefixDir);
+ }
+ #endif
